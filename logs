@@ -1,0 +1,15 @@
+$ python3 generator.py 12 8 unsat input.txt
+$ time python3 210050040_210050044_210050155_tile_looptile_loop.py input.txt 
+unsat
+
+real	15m22.959s
+user	15m21.650s
+sys	0m0.828s
+
+$ python3 generator.py 3 10 unsat input2.txt
+$ time python3 210050040_210050044_210050155_tile_looptile_loop.py input2.txt 
+unsat
+
+real	10m46.907s
+user	10m46.807s
+sys	0m0.064s
