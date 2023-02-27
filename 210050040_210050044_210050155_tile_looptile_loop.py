@@ -70,18 +70,18 @@ for i in range(n):
                 s.add(all_states[t][matrix[i][j]-1][bit])
 
 # clauses for maintaining valid state of board
-for t in range(T+1):
-    for i1 in range(n*n):
-        for i2 in range(n*n):
-            if i1 != i2:
-                or_clause = []
-                for j in range(len(f"{n*n-1:b}")):
-                    or_clause.append(Xor(all_states[t][i1][j],all_states[t][i2][j]))
-                s.add(Or(or_clause))
+# for t in range(T+1):
+#     for i1 in range(n*n):
+#         for i2 in range(n*n):
+#             if i1 != i2:
+#                 or_clause = []
+#                 for j in range(len(f"{n*n-1:b}")):
+#                     or_clause.append(Xor(all_states[t][i1][j],all_states[t][i2][j]))
+#                 s.add(Or(or_clause))
 
 # clauses for changing state of board by applying a move
 for t in range(T):
-    move_clauses = []
+    # move_clauses = []
     for (bool_inc,bool_row) in [("0","0"),("0","1"),("1","0"),("1","1")]:
         for move in range(n):
             move_clause = generate_move_clause(t, move, bool_row, bool_inc)
@@ -106,26 +106,27 @@ for t in range(T):
                     next_pos_clause = generate_pos_clause(t+1, binary_next_position, num)
                     shift_clause.append(Implies(current_pos_clause,next_pos_clause))
 
-            for other_i in range(n):
-                if other_i == i:
-                    continue
-                for j in range(n):
-                    for num in range(n*n):
-                        if is_row:
-                            binary_current_position = f"{other_i*n+j:b}"
-                        else:
-                            binary_current_position = f"{j*n+other_i:b}"
-
-                        binary_current_position = "0"*(len(f"{n*n-1:b}")-len(binary_current_position))+binary_current_position
-                        binary_next_position = binary_current_position
-
-                        current_pos_clause = generate_pos_clause(t, binary_current_position, num)
-                        next_pos_clause = generate_pos_clause(t+1, binary_next_position, num)
-                        shift_clause.append(Implies(current_pos_clause,next_pos_clause))
-
             shift_clause = And(shift_clause)
-            move_clauses.append(And(move_clause,shift_clause))
-    s.add(Or(move_clauses))
+            # move_clauses.append(Implies(move_clause,shift_clause))
+            s.add(Implies(move_clause,shift_clause))
+    # s.add(And(move_clauses))
+
+
+    for num in range(n*n):
+        for pos in range(n*n):
+            i = pos//n
+            j = pos%n
+            binary_position = f"{pos:b}"
+            binary_position = "0"*(len(f"{n*n-1:b}")-len(binary_position))+binary_position
+            current_pos_clause = generate_pos_clause(t, binary_position, num)
+            next_pos_same = generate_pos_clause(t+1, binary_position, num)
+
+            other_positions = [f"{i*n+(j+1)%n:b}",f"{i*n+(j-1)%n:b}",f"{((i+1)%n)*n+j:b}",f"{((i-1)%n)*n+j:b}"]
+            other_positions = ["0"*(len(f"{n*n-1:b}")-len(bpos))+bpos for bpos in other_positions]
+            other_pos_clauses = [generate_pos_clause(t+1, bpos, num) for bpos in other_positions]
+            corresponding_move_clauses = [generate_move_clause(t,i,"1","1"),generate_move_clause(t,i,"1","0"),generate_move_clause(t,j,"0","1"),generate_move_clause(t,j,"0","0")]
+
+            s.add(Implies(current_pos_clause,Or([next_pos_same]+[And(other_pos_clauses[i],corresponding_move_clauses[i]) for i in range(4)])))
 
 # clauses for win condition of game
 or_clause = []
@@ -162,4 +163,5 @@ if x == sat:
         for j in range(len(f"{n-1:b}")):
             position_of_move = str(moves[i][f"move_{i}_position_bit_{j}"]) + position_of_move
         position_of_move = eval("0b"+position_of_move)
-        print(f"{position_of_move}{type_of_move}")
+        if position_of_move<n:
+            print(f"{position_of_move}{type_of_move}")
