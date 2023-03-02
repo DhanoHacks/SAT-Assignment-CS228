@@ -13,3 +13,11 @@ unsat
 real	10m46.907s
 user	10m46.807s
 sys	0m0.064s
+
+ver 4:
+$ python3 generator.py 12 8 unsat input.txt && time python3 210050040_210050044_210050155_tile_looptile_loop.py input.txt
+unsat
+
+real	0m40.674s
+user	0m40.620s
+sys	0m0.052s
